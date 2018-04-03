@@ -1,2 +1,2 @@
 
-Este repositório é um POC para teste solicitado para avaliação de conhecimento.
+Este repositório é um POC para avaliação de conhecimento.
