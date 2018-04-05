@@ -1,36 +1,23 @@
 <?php
 
-require_once '../data/Customer.php';
-require_once '../data/Product.php';
+require_once __DIR__ . '/../plugins/Template.php';
 
-echo '<pre>';
-
-// $customer = new Customer();
-
-// $customer->create([
-//     'name' => 'Graciele',
-//     'email' => 'xika@gmail.com'
-// ]);
-
-// var_dump($customer);
-
-// print_r($customer->all());
-
-$p = new Product();
-
-// $p->create([
-//     'name' => 'Caneta',
-//     'amount' => '1.00',
-//     'description' => 'Serve para escrever'
-// ]);
+$app = @$_REQUEST['app'] ?: '';
+$act = @$_REQUEST['act'] ?: '';
 
 
-$p->read(1);
-$p->update([
-    'name' => 'Super caneta'
-]);
+switch ($app) {
+    case 'order':
+    case 'products':
+    case 'customers':
+    default:
+        require_once __DIR__ . '/../controllers/CustomersController.php';
+        $app = new CustomersController($_REQUEST);
+        break;
+}
 
-print_r($p);
 
 
-print_r($p->read(1));
+$mainTpl = new Template('main.html');
+$mainTpl->content = $app->run($act)->view();
+echo $mainTpl->render();

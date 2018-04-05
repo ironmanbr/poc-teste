@@ -1,0 +1,24 @@
+<div class="row">
+	<div class="col-sm-6">
+		<h3 style="margin: 0;">Clientes - Lista</h3>
+	</div>
+	<div class="col-sm-6 text-right">
+		<a class="btn btn-warning" href="?app=customer&act=show" role="button">Novo</a>
+	</div>
+</div>
+
+<hr>
+
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th class="col-xs-11">Nome</th>
+			<th class="col-xs-2 text-center text-nowrap">Data Cadastro</th>
+			<th class="col-xs-1 text-center">#</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		{%items%}
+	</tbody>
+</table>

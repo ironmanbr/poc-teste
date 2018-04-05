@@ -1,8 +1,12 @@
 <?php
 
-
+/**
+* Abstrair operações básicas do crud com automatização de alguns processos.
+*/
 abstract class CrudBaseAbstract
 {
+    protected $primaryKey = 'id';
+
     protected $connection;
 
     protected $table;
@@ -38,7 +42,7 @@ abstract class CrudBaseAbstract
 
     public function create($attributes)
     {
-        if (isset($this->attributes['id'])) {
+        if (isset($this->attributes[$this->primaryKey])) {
             return $this->attributes;
         }
 
@@ -48,7 +52,7 @@ abstract class CrudBaseAbstract
         $stmt = $conn->prepare($this->prepareCreateQuery());
         $stmt->execute(array_values($this->attributes));
 
-        $this->attributes['id'] = $conn->lastInsertId();
+        $this->attributes[$this->primaryKey] = $conn->lastInsertId();
 
         return $this->attributes;
     }
@@ -68,28 +72,32 @@ abstract class CrudBaseAbstract
         return $query;
     }
 
-    public function read($id)
+    public function read($primaryKey)
     {
         $conn = $this->connection;
 
-        $sql = sprintf('SELECT * FROM %s WHERE id = ?', $this->table);
+        $sql = sprintf('SELECT * FROM %s WHERE %s = ?', $this->table, $this->primaryKey);
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array($id));
+        $stmt->execute(array($primaryKey));
 
-        if ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $this->attributes = $data;
-        }
-        else {
-            throw new Exception("Registro não encontrado", 1);
-        }
+        $this->attributes = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $this->attributes;
     }
 
+    public function readOrFail($primaryKey)
+    {
+        if (null === ($data = $this->read($primaryKey))) {
+            throw new Exception("Registro não encontrado", 1);
+        }
+
+        return $data;
+    }
+
     public function update($attributes)
     {
-        if (!isset($this->attributes['id'])) {
-            throw new Exception("Erro: ID não esta presente.", 1);
+        if (!isset($this->attributes[$this->primaryKey])) {
+            throw new Exception("Erro: Chave primária não esta presente.", 1);
         }
 
         $this->fill($attributes);
@@ -103,14 +111,18 @@ abstract class CrudBaseAbstract
 
     protected function prepareUpdateQuery()
     {
-        $fields = array_keys($this->attributes);
-        $fields = array_filter($fields, function($el) { return $el !== 'id'; });
+        $filterFields = function($el) { 
+            return $el !== $this->primaryKey;
+        };
+
+        $fields = array_filter(array_keys($this->attributes), $filterFields);
         $params = array_map(function($el) { return "$el = :$el"; }, $fields);
 
         $query = sprintf(
-            'UPDATE %s SET %s WHERE id = :id;',
+            'UPDATE %1$s SET %2$s WHERE %3$s = :%3$s;',
             $this->table,
-            implode(', ', $params)
+            implode(', ', $params),
+            $this->primaryKey
         );
 
         return $query;
@@ -124,6 +136,15 @@ abstract class CrudBaseAbstract
         }
 
         return $values;
+    }
+
+    public function delete($primaryKey)
+    {
+        $sql = sprintf('DELETE FROM %s WHERE %s = ?;', $this->table, $this->primaryKey);
+
+        $conn = $this->connection;
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$primaryKey]);
     }
 
     public function fill($attributes)
