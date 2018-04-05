@@ -1,6 +1,10 @@
 
 Este repositório é um POC para avaliação de conhecimento.
 
-Requisito, utilizar apenas php sem framework, ter uma boa legibilidade e ser otimizado.
+Requisito:
+  - utilizar apenas php sem framework
+  - ter uma boa legibilidade
+  - ser otimizado.
 
-- Existe pontos de exceção não tratados
+Avisos:
+  - Existe pontos de exceção não tratados
